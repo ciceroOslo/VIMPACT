@@ -4,7 +4,6 @@
 
 import pandas as pd
 import os
-import openpyxl
 import warnings
 
 
@@ -217,6 +216,7 @@ if __name__ == "__main__":
     cicero_accounting_df = cicero_specific_transactions(accounting_df, mapping_df)
 
     # Transforming the accounting data to Maconomy format.
+    # Note: If you do not want the CICERO-sepcific transactions, you can specify accounting_df instead of cicero_accounting_df.
     maconomy_df = transform_to_maconomy(cicero_accounting_df, mapping_df)
 
     # Writing the Maconomy DataFrame to an Excel file
