@@ -23,11 +23,8 @@ def get_mapping_data(mp_filename):
         print(f"\033[92m1) The mapping Excel file was read successfully.\033[0m")
         return mpdf
 
-
-def process_input_files(hl_filename, dr_filename):
-
-
 # Read the H&L file into a DataFrame. Use fixed-width format to read the file.
+def process_input_files(hl_filename, dr_filename):
     try:
         # Define the column specifications for the fixed-width file
         hlcolspecs = [(0, 12), (12, 14), (14, 26), (26, 38), (38, 50), (50, 62), (62, 74), (74, 86), (86, 98), (98, 118), (118, 121), (121, 129), (129, 139), (139, 149), (149, 160) ] 
@@ -90,15 +87,9 @@ def process_input_files(hl_filename, dr_filename):
         # Converting the 'Reiseregning ID' column to a integer object to make merging/mapping more robust.
         drdf['Reiseregning ID'] = pd.to_numeric(drdf['Reiseregning ID'], errors='coerce')
         
-        # Merging: Add the column Text to hldf DataFrame and use a vlookup-like function to fetch drdf and join on ID=Reiseregning ID
-      
-      #  hldf['Text'] = hldf['ID'].map(drdf.set_index('Reiseregning ID')['Tekst']).fillna('Lønn').astype(str)    
-      
+        # Merging: Add the column Text to hldf DataFrame and use a vlookup-like function to fetch drdf and join on ID=Reiseregning ID     
         hldf['Text'] = hldf.apply(lambda row: f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')}" if 'Lønn' in drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})') else f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')} ({row['ID']})", axis=1)
-       
 
-      
-         
         #return hldf dataframe from the function
         return hldf
         
@@ -189,7 +180,6 @@ def transform_to_maconomy(input_df_hldf, input_df_mapping):
     df_macloc['ActivityNumber'] = input_df_hldf.apply(lambda row: row['Konto'] if row['Prosjekt'] > 1 else None, axis=1)
     df_macloc['JobNumber'] = input_df_hldf.apply(lambda row: row['Prosjekt'] if row['Prosjekt'] > 0 else None, axis=1)
     df_macloc['EmployeeNumber'] = input_df_hldf.apply(lambda row: row['Medarbeider'] if row['Medarbeider'] != '0' else None, axis=1)
-   # added with copilot
     df_macloc['TaskName'] = df_macloc['ActivityNumber'].map(df_task.set_index('Account')['Task'])
     df_macloc['GeneralJournal:Format'] = 'GENERALJOURNAL:CREATE'
     df_macloc['TransactionNumber'] = '#KEEP'
