@@ -91,8 +91,13 @@ def process_input_files(hl_filename, dr_filename):
         drdf['Reiseregning ID'] = pd.to_numeric(drdf['Reiseregning ID'], errors='coerce')
         
         # Merging: Add the column Text to hldf DataFrame and use a vlookup-like function to fetch drdf and join on ID=Reiseregning ID
-        hldf['Text'] = hldf['ID'].map(drdf.set_index('Reiseregning ID')['Tekst']).fillna('Lønn ').astype(str)    
+      
+      #  hldf['Text'] = hldf['ID'].map(drdf.set_index('Reiseregning ID')['Tekst']).fillna('Lønn').astype(str)    
+      
+        hldf['Text'] = hldf.apply(lambda row: f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')}" if 'Lønn' in drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})') else f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')} ({row['ID']})", axis=1)
+       
 
+      
          
         #return hldf dataframe from the function
         return hldf
@@ -164,7 +169,6 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
             df_addded_transactions = pd.concat([input_df_hldf, pd.DataFrame(new_rows)], ignore_index=True)
         
     return df_addded_transactions
-    # boooo
 
 
 # Function to transform the DataFrame to a Maconomy import file format
@@ -193,8 +197,6 @@ def transform_to_maconomy(input_df_hldf, input_df_mapping):
     return df_macloc
 
 
-
-
 # ***********************************************************************************
 # The main program code - make sure it only runs if the script is executed directly *
 # ***********************************************************************************        
@@ -219,12 +221,23 @@ if __name__ == "__main__":
     # Note: If you do not want the CICERO-sepcific transactions, you can specify accounting_df instead of cicero_accounting_df.
     maconomy_df = transform_to_maconomy(cicero_accounting_df, mapping_df)
 
+    # Static assignment of a DataFrame with three columns
+    mac_header_df = pd.DataFrame({
+        'Column1': ['JOURNAL:Format','JOURNAL:CREATE'],
+        'Column2': ['TransactionNumberSeries','Lønn'],
+        'Column3': ['CompanyNumber','1']
+    })
+
     # Writing the Maconomy DataFrame to an Excel file
     if maconomy_df is not None:
         output_filename = os.path.join(os.path.dirname(hl_filename), "out.xlsx")
 
         try:
-            maconomy_df.to_excel(output_filename, index=False)
+            mac_header_df.to_excel(output_filename, index=False, header=False)
+            with pd.ExcelWriter(output_filename, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                maconomy_df.to_excel(writer, index=False, startrow=len(mac_header_df) + 1)
+
+           # maconomy_df.to_excel(output_filename, index=False)
         except Exception as e:
             print(f"\033[91mError writing the Maconomy import file: {e}\033[0m")
         else:                      
