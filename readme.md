@@ -1,5 +1,5 @@
 "VIMPACT"
-# Visma Integration & Maconomy Payroll Accounting Conversion Tool
+# Visma Integration & Maconomy - Payroll Accounting Conversion Tool
 Date: 30th of October 2024
 
 This tool facilitates the conversion of payroll accounting data file from Visma Payroll to Delktek Maconomy ERP.
