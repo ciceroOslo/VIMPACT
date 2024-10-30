@@ -1,7 +1,6 @@
 # VIMPACT by Frode Rørvik, CICERO Center for International Climate Research 
 # Date: 2024-10-20
 
-
 import pandas as pd
 import os
 import warnings
@@ -78,12 +77,12 @@ def process_input_files(hl_filename, dr_filename, mp_dataframe):
         # Populate 'Oppgave' with Task from mp. Mapping should be done on Konto=Account.
         mp.columns = ['Account', 'Task']
 
-        # If Prosjekt > 10000 then map Oppgave from Konto using the mapping DataFrame else Oppgave = 0        
-        hldf.loc[hldf['Prosjekt'] > 10000, 'Oppgave'] = hldf['Konto'].map(mp.set_index('Account')['Task'])
-        hldf.loc[hldf['Prosjekt'] < 10000, 'Oppgave'] = 0
+        # IF statments to assign a task number if project is specified in the accounting file.     
+        hldf.loc[hldf['Prosjekt'] >= 1, 'Oppgave'] = hldf['Konto'].map(mp.set_index('Account')['Task'])
+        hldf.loc[hldf['Prosjekt'] < 1, 'Oppgave'] = 0
         
         # Use pivot function to aggregate Beløp if Konto & Avdeling & Project are the same
-        # might be removed in the future.
+        # might be removed if Visma Payroll is configured correctly.
         hldf = hldf.pivot_table(index=['Konto', 'Avdeling', 'Prosjekt', 'Medarbeider','Oppgave', 'MVA', 'ID', 'Dato'], values='Beløp', aggfunc='sum').reset_index()
 
         # Drop the columns Lønnsperiode, Ansattnummer og Lønnsart from drdf DataFrame (Payroll Excel report)
@@ -147,19 +146,19 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
             input_df_hldf.at[index, 'MVA'] = 0 
             row['MVA'] = 0
 
+        # Invoicable projects (not Towards2040 projects)
         if int(row['Prosjekt']) > 30000 and int(row['Prosjekt']) not in df_towards['Towards'].astype(int).values:
-            # Ordenary invoiable project - credit trans.
-            if int(row['Konto']) in range(5000, 5999):
+            # Credit trans
+            if int(row['Konto']) in range(5000, 5998):
                 new_row_1 = row.copy()
                 new_row_1['Konto'] = 5999
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(6000, 6999):
+            elif int(row['Konto']) in range(6000, 6998):
                 new_row_1 = row.copy()
-                new_row_1['Konto'] = ['Konto']
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(7000, 7999):
+            elif int(row['Konto']) in range(7000, 7998):
                 new_row_1 = row.copy()
                 new_row_1['Konto'] = 7999
                 new_row_1['Beløp'] = -row['Beløp']
@@ -171,19 +170,20 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
             new_row_2['Beløp'] = abs(row['Beløp'])
             new_rows.append(new_row_2)
 
+        # Towards2040 projects (df_towards)
         elif int(row['Prosjekt']) in df_towards['Towards'].astype(int).values:
-            # Towards2040 projects (df_towards) - credit trans.
-            if int(row['Konto']) in range(5000, 5999):
+            # Credit trans.
+            if int(row['Konto']) in range(5000, 5998):
                 new_row_1 = row.copy()
                 new_row_1['Konto'] = 5999
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(6000, 6999):
+            elif int(row['Konto']) in range(6000, 6998):
                 new_row_1 = row.copy()
-                new_row_1['Konto'] = ['Konto']
+                new_row_1['Konto'] = 7999
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(7000, 7999):
+            elif int(row['Konto']) in range(7000, 7998):
                 new_row_1 = row.copy()
                 new_row_1['Konto'] = 7999
                 new_row_1['Beløp'] = -row['Beløp']
