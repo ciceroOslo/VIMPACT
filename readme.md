@@ -1,6 +1,6 @@
 "VIMPACT"
 # Visma Integration & Maconomy Payroll Accounting Conversion Tool
-Date: 27th of October 2024
+Date: 30th of October 2024
 
 This tool facilitates the conversion of payroll accounting data file from Visma Payroll to Delktek Maconomy ERP.
 Please configure Visma Payroll to output H&L fixed width file format. Currenty, its the only format that supports VAT codes.

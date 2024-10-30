@@ -23,7 +23,7 @@ def get_mapping_data(mp_filename):
 def process_input_files(hl_filename, dr_filename, mp_dataframe):
 
     # Mapping - Task lookup from Account.
-    mp = mp_dataframe.iloc[:, [0, 2]]
+    mp = mp_dataframe.iloc[:, [0, 1]]
 
     try:
         # Define the column specifications for the fixed-width Visma Payroll accounting file
@@ -122,9 +122,9 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
     # The VAT handling is also considered in the new debit/credit entries.
     
     # Extracting the Towards2040 projects (df_towards).
-    df_towards = input_df_mapping.iloc[:, [4]].dropna(subset=[input_df_mapping.columns[4]])
+    df_towards = input_df_mapping.iloc[:, [3]].dropna(subset=[input_df_mapping.columns[3]])
     # Extracting the projects with VAT handeling (df_VAT).
-    df_VAT = input_df_mapping.iloc[:, [6]].dropna(subset=[input_df_mapping.columns[6]])
+    df_VAT = input_df_mapping.iloc[:, [5]].dropna(subset=[input_df_mapping.columns[5]])
        
     new_rows = []
 
