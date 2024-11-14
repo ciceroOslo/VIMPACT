@@ -132,12 +132,7 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
     # 5000-5998: Debit 4753, Kredit 5999
     # 6000-6998: Debit 4753, Kredit 6XXX
     # 7000-7998: Debit 4753, Kredit 7999
-
-    # Towards (df_towards)
-    # 5000-5998: Debit 7713, Kredit 5999
-    # 6000-6998: Debit 7713, Kredit 6XXX
-    # 7000-7998: Debit 7713, Kredit 7999
-    
+     
     # Loop through the DataFrame and create the new debit/credit entries
     for index, row in input_df_hldf.iterrows():
 
@@ -149,52 +144,54 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
         # Invoicable projects (not Towards2040 projects)
         if int(row['Prosjekt']) > 30000 and int(row['Prosjekt']) not in df_towards['Towards'].astype(int).values:
             # Credit trans
-            if int(row['Konto']) in range(5000, 5998):
+            if int(row['Konto']) in range(5000, 5299) or int(row['Konto']) in range(5330, 5549) or int(row['Konto']) in range(5600, 5998):
+                # Same same but different
+                row['Konto'] = 4755
+            elif int(row['Konto']) in range(5300, 5329):
+                # Debit debit credit 5300-5329
+                # credit first...
                 new_row_1 = row.copy()
-                new_row_1['Konto'] = 5999
+                new_row_1['Konto'] = 5399
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)
+
+                # Debit trans on account 4755
+                new_row_2 = row.copy()
+                new_row_2['Konto'] = 4755
+                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_rows.append(new_row_2)
+            elif int(row['Konto']) in range(5550, 5598):
+                # Debit debit credit 5550-5598 (not 5599)
+                # credit first...
+                new_row_1 = row.copy()
+                new_row_1['Konto'] = 5599
+                new_row_1['Beløp'] = -row['Beløp']
+                new_rows.append(new_row_1)
+
+                # Debit trans on account 4755
+                new_row_2 = row.copy()
+                new_row_2['Konto'] = 4755
+                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_rows.append(new_row_2)
             elif int(row['Konto']) in range(6000, 6998):
+                row['Konto'] = 4756
+            elif int(row['Konto']) in range(7000, 7169):
+                # Debit debit credit
+                # credit first...
                 new_row_1 = row.copy()
-                new_row_1['Beløp'] = -row['Beløp']
-                new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(7000, 7998):
-                new_row_1 = row.copy()
-                new_row_1['Konto'] = 7999
+                new_row_1['Konto'] = 7199
                 new_row_1['Beløp'] = -row['Beløp']
                 new_rows.append(new_row_1)    
      
-            # Debit trans on account 4753
-            new_row_2 = row.copy()
-            new_row_2['Konto'] = 4753
-            new_row_2['Beløp'] = abs(row['Beløp'])
-            new_rows.append(new_row_2)
-
-        # Towards2040 projects (df_towards)
-        elif int(row['Prosjekt']) in df_towards['Towards'].astype(int).values:
-            # Credit trans.
-            if int(row['Konto']) in range(5000, 5998):
-                new_row_1 = row.copy()
-                new_row_1['Konto'] = 5999
-                new_row_1['Beløp'] = -row['Beløp']
-                new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(6000, 6998):
-                new_row_1 = row.copy()
-                new_row_1['Konto'] = 7999
-                new_row_1['Beløp'] = -row['Beløp']
-                new_rows.append(new_row_1)
-            elif int(row['Konto']) in range(7000, 7998):
-                new_row_1 = row.copy()
-                new_row_1['Konto'] = 7999
-                new_row_1['Beløp'] = -row['Beløp']
-                new_rows.append(new_row_1)    
-             
-            # Debit trans on account 7713
-            new_row_2 = row.copy()
-            new_row_2['Konto'] = 7713
-            new_row_2['Beløp'] = abs(row['Beløp'])
-            new_rows.append(new_row_2)
-                   
+                # Debit trans on account 4757
+                new_row_2 = row.copy()
+                new_row_2['Konto'] = 4757
+                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_rows.append(new_row_2)
+            elif int(row['Konto']) in range(7170, 7998):
+                # Same same but different
+                row['Konto'] = 4757
+         
         # Insert the new rows into hldf
         if new_rows:
             df_addded_transactions = pd.concat([input_df_hldf, pd.DataFrame(new_rows)], ignore_index=True)
