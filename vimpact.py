@@ -144,9 +144,10 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
         # Invoicable projects (not Towards2040 projects)
         if int(row['Prosjekt']) > 30000 and int(row['Prosjekt']) not in df_towards['Towards'].astype(int).values:
             # Credit trans
+
             if int(row['Konto']) in range(5000, 5299) or int(row['Konto']) in range(5330, 5549) or int(row['Konto']) in range(5600, 5998):
                 # Same same but different
-                row['Konto'] = 4755
+                input_df_hldf.at[index, 'Konto'] = 4753                
             elif int(row['Konto']) in range(5300, 5329):
                 # Debit debit credit 5300-5329
                 # credit first...
@@ -174,7 +175,8 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
                 new_row_2['Beløp'] = abs(row['Beløp'])
                 new_rows.append(new_row_2)
             elif int(row['Konto']) in range(6000, 6998):
-                row['Konto'] = 4756
+                 input_df_hldf.at[index, 'Konto'] = 4756 
+                
             elif int(row['Konto']) in range(7000, 7169):
                 # Debit debit credit
                 # credit first...
@@ -190,7 +192,7 @@ def cicero_specific_transactions(input_df_hldf, input_df_mapping):
                 new_rows.append(new_row_2)
             elif int(row['Konto']) in range(7170, 7998):
                 # Same same but different
-                row['Konto'] = 4757
+                input_df_hldf.at[index, 'Konto'] = 4757 
          
         # Insert the new rows into hldf
         if new_rows:
