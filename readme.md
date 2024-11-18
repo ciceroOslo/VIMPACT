@@ -23,9 +23,11 @@ Please filter on Lønnsartgrupper = Expense. Remember to adjust Fra/til lønnskj
 3) Modify the file mapping.xlsx and enter the relationship between account/activity and task number. 
 You can also edit the project listing for special handeling of projects with VAT.  
 
-4) Copy the content of out.xlsx to a text file (copy - paste). Do not try Save As text file from Excel. Excel add quotation marks to text strings that contains special characters. 
+4) Format the Debit and Credit cells: general number with two digits.
 
-5) Import file in Maconomy - Import General Journal. Rembember to check "internal popup names"
+5) Copy the content of out.xlsx to a text file (copy - paste). Do not try Save As text file from Excel. Excel add quotation marks to text strings that contains special characters. 
+
+6) Import file in Maconomy - Import General Journal. Rembember to check "internal popup names"
 
 ## Contributing
 
