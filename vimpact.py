@@ -8,21 +8,31 @@ from get_mapping import get_mapping_data
 from preprosessing import process_input_files
 from company_specs import company_specific_transactions
 from maconomy import transform_to_maconomy
+from datetime import datetime, timedelta
+from azure_auth import get_mapping_data
 
+pd.set_option('display.max_rows', None)
 
 # ***********************************************************************************
 # The main program code - make sure it only runs if the script is executed directly *
 # ***********************************************************************************        
 
 def main() -> None:
+    orgno:          str = "971274190"
+    # Calculate the date part of the accounting file
+    today = datetime.today()
+    first_day_of_month = today.replace(day=1)
+    datepart:       str = first_day_of_month.strftime("%Y%m")
     # Define the file paths and input files
     downloads_dir:  str = os.path.join(os.path.expanduser("~"), "Downloads")
-    hl_filename:    str = os.path.join(downloads_dir, "HLTrans_971274190_202411.HLT")
+    hl_filename:    str = os.path.join(downloads_dir, "HLTrans_" + orgno + "_" + datepart + ".HLT")
     dr_filename:    str = os.path.join(downloads_dir, "Transaksjoner, detaljert.xlsx")
     mp_filename:    str = os.path.join("mapping.xlsx")
 
     # Getting the mapping data from the Excel file
-    mapping_df: pd.DataFrame = get_mapping_data(mp_filename)
+    # mapping_df: pd.DataFrame = get_mapping_data(mp_filename)
+
+    mapping_df: pd.DataFrame = get_mapping_data()
 
     # Processing and preparing the accounting data
     accounting_df: pd.DataFrame = process_input_files(hl_filename, dr_filename, mapping_df)

@@ -46,32 +46,52 @@ def process_input_files(hl_filename :str, dr_filename: str, mp_dataframe: pd.Dat
         # Insert column 'Oppgave' between 'Prosjekt' and 'Medarbeider'
         hldf.insert(hldf.columns.get_loc('Medarbeider'), 'Oppgave', None)
 
+        # convert Prosjekt to string
+        hldf['Prosjekt'] = hldf['Prosjekt'].astype(str)
+        hldf['Oppgave'] = hldf['Oppgave'].astype(str)
+        hldf['Avdeling'] = hldf['Avdeling'].astype(str)
+        hldf['Medarbeider'] = hldf['Medarbeider'].astype(str)
+        hldf['Konto'] = hldf['Konto'].astype(str)
+        hldf['ID'] = hldf['ID'].astype(str)
+
+        # hldf.loc[hldf['MVA'] == "0", 'MVA'] = ""
+        hldf.loc[hldf['Prosjekt'] == "0", 'Prosjekt'] = ""
+        hldf.loc[hldf['Avdeling'] == "0", 'Avdeling'] = ""
+        hldf.loc[hldf['Medarbeider'] == "0", 'Medarbeider'] = ""
+        hldf.loc[hldf['ID'] == "0", 'ID'] = ""
+        hldf.loc[hldf['Oppgave'] == "0", 'Oppgave'] = ""
+
         # Converting to proper datatypes - hldf DataFrame
         hldf['Dato'] = pd.to_datetime(hldf['Dato'], format='%d%m%Y', errors='coerce')
         hldf['Beløp'] = hldf['Beløp'].astype(float) / 100
-        hldf['Konto'] = pd.to_numeric(hldf['Konto'], errors='coerce')
-        hldf['ID'] = pd.to_numeric(hldf['ID'], errors='coerce')
-        
-
+        # hldf['Konto'] = pd.to_numeric(hldf['Konto'], errors='coerce')
+        # hldf['ID'] = pd.to_numeric(hldf['ID'], errors='coerce')
+                
         # Removing unwanted Project and Department dimensions. Just to correct sub-optimal configuration of Visma Payroll.
         # This might be removed in the future.
-        hldf.loc[(hldf['Konto'] < 5320) | (hldf['Konto'] > 5329) & (hldf['Konto'] < 5849) & (hldf['Prosjekt'] > 0), 'Prosjekt'] = 0
-        hldf.loc[(hldf['Medarbeider'] == "0") & (hldf['Prosjekt'] == 0), 'Avdeling'] = 0
+        # hldf.loc[(hldf['Konto'] < 5320) | (hldf['Konto'] > 5329) & (hldf['Konto'] < 5849) & (hldf['Prosjekt'] > 0), 'Prosjekt'] = 0
+        # hldf.loc[(hldf['Medarbeider'] == "0") & (hldf['Prosjekt'] == 0), 'Avdeling'] = 0
         # Populate 'Sign' with "+" if Sign is not "-"
         hldf.loc[(hldf['Sign'] != "-"), 'Sign'] = "+"
 
         # Populate 'Oppgave' with Task from mp. Mapping should be done on Konto=Account.
         mp.columns = ['Account', 'Task']
-
+        #make sure that mp contains numeric values - may be deleted when all is good.
+        #mp['Account'] = pd.to_numeric(mp['Account'], errors='coerce')
+       
         # IF statments to assign a task number if project is specified in the accounting file.     
-        hldf.loc[hldf['Prosjekt'] >= 1, 'Oppgave'] = hldf['Konto'].map(mp.set_index('Account')['Task'])
-        hldf.loc[hldf['Prosjekt'] < 1, 'Oppgave'] = 0
+        
+        hldf.loc[hldf['Prosjekt'] != "", 'Oppgave'] = hldf['Konto'].map(mp.set_index('Account')['Task'])
+        hldf.loc[hldf['Prosjekt'] == "", 'Oppgave'] = ""
         
         # Use pivot function to aggregate Beløp if Konto & Avdeling & Project are the same
         # might be removed if Visma Payroll is configured correctly.
-        #......need to take into account not to aggregate Beløp with different sign (positive/negative)
-      
-        hldf = hldf.pivot_table(index=['Konto', 'Avdeling', 'Prosjekt', 'Medarbeider','Oppgave', 'MVA', 'ID', 'Dato', 'Sign'], values='Beløp', aggfunc='sum').reset_index()
+        #......now also taken into account not to aggregate Beløp with different sign (positive/negative)
+        # hldf = hldf.pivot_table(index=['Konto', 'Avdeling', 'Prosjekt', 'Medarbeider','Oppgave', 'MVA', 'ID', 'Dato', 'Sign'], values='Beløp', aggfunc='sum').reset_index()
+  
+        # If Avdeling is 0, then set Avdeling to NaN
+        hldf.loc[hldf['Avdeling'] == 0, 'Avdeling'] = ""
+
         # Don't need the Sign column anymore
         hldf.drop(columns=['Sign'], inplace=True)
 
@@ -82,7 +102,7 @@ def process_input_files(hl_filename :str, dr_filename: str, mp_dataframe: pd.Dat
         drdf = drdf.pivot_table(index=['Tekst', 'Reiseregning ID']).reset_index()
 
         # Converting the 'Reiseregning ID' to an integer object to make merging/mapping more robust.
-        drdf['Reiseregning ID'] = pd.to_numeric(drdf['Reiseregning ID'], errors='coerce')
+        # drdf['Reiseregning ID'] = pd.to_numeric(drdf['Reiseregning ID'], errors='coerce')
         
         # Merging: Add the column Text to hldf DataFrame and use a vlookup-like function to fetch drdf and join on ID=Reiseregning ID     
         hldf['Text'] = hldf.apply(lambda row: f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], 

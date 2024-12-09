@@ -11,13 +11,14 @@ def transform_to_maconomy(input_df_hldf: pd.DataFrame) -> pd.DataFrame:
     df_macloc['EntryDate'] = input_df_hldf['Dato'].dt.strftime('%d/%m/%Y')
     df_macloc['EntryText'] = input_df_hldf.apply(lambda row: row['Text'] if isinstance(row['Text'], str) else None, axis=1)
     df_macloc['TypeOfEntry'] = 'G'
-    df_macloc['AccountNumber'] = input_df_hldf.apply(lambda row: row['Konto'] if row['Prosjekt'] < 1 else None, axis=1)
+    
+    df_macloc['AccountNumber'] = input_df_hldf.apply(lambda row: row['Konto'] if row['Prosjekt'] =="" else None, axis=1)
     df_macloc['FinanceVATCode'] = input_df_hldf.apply(lambda row: row['MVA'] if row['MVA'] > 0 else None, axis=1)
     df_macloc['DebitBase'] = input_df_hldf.apply(lambda row: row['Beløp'] if row['Beløp'] > 0 else None, axis=1)
     df_macloc['CreditBase'] = input_df_hldf.apply(lambda row: abs(row['Beløp']) if row['Beløp'] < 0 else None, axis=1)
     df_macloc['EntityName'] = input_df_hldf.apply(lambda row: row['Avdeling'] if isinstance(row['Avdeling'], str) else None, axis=1)
-    df_macloc['ActivityNumber'] = input_df_hldf.apply(lambda row: row['Konto'] if row['Prosjekt'] > 1 else None, axis=1)
-    df_macloc['JobNumber'] = input_df_hldf.apply(lambda row: row['Prosjekt'] if row['Prosjekt'] > 0 else None, axis=1)
+    df_macloc['ActivityNumber'] = input_df_hldf.apply(lambda row: row['Konto'] if row['Prosjekt'] > "1" else None, axis=1)
+    df_macloc['JobNumber'] = input_df_hldf.apply(lambda row: row['Prosjekt'] if row['Prosjekt'] > "0" else None, axis=1)
     df_macloc['EmployeeNumber'] = input_df_hldf.apply(lambda row: row['Medarbeider'] if row['Medarbeider'] != '0' else None, axis=1)
     df_macloc['TaskName'] = input_df_hldf.apply(lambda row: row['Oppgave'] if row['Oppgave'] else None, axis=1)
     df_macloc['GeneralJournal:Format'] = 'GENERALJOURNAL:CREATE'

@@ -12,9 +12,17 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
     # The VAT handling is also considered in the new debit/credit entries.
     
     # Extracting the Towards2040 projects (df_towards).
-    df_towards = input_df_mapping.iloc[:, [3]].dropna(subset=[input_df_mapping.columns[3]])
+    df_towards = input_df_mapping.iloc[:, [2]].dropna(subset=[input_df_mapping.columns[2]])
     # Extracting the projects with VAT handeling (df_VAT).
-    df_VAT = input_df_mapping.iloc[:, [5]].dropna(subset=[input_df_mapping.columns[5]])
+    df_VAT = input_df_mapping.iloc[:, [3]].dropna(subset=[input_df_mapping.columns[3]])
+
+    # print(df_towards)   
+   
+    # print(df_VAT)
+
+    # print(input_df_hldf)
+
+    # print("Hello nurce!")
        
     new_rows = []
 
@@ -27,12 +35,13 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
     for index, row in input_df_hldf.iterrows():
 
         # Deleting VAT codes from non VAT projects
-        if int(row['Prosjekt']) not in df_VAT['Project_VAT'].astype(int).values:   
+        if (row['Prosjekt']) not in df_VAT['Project_VAT'].values:   
             input_df_hldf.at[index, 'MVA'] = 0 
             row['MVA'] = 0
 
         # Invoicable projects (not Towards2040 projects)
-        if int(row['Prosjekt']) > 30000 and int(row['Prosjekt']) not in df_towards['Towards'].astype(int).values:
+        # astype(int).values
+        if (row['Prosjekt']) > "30000" and (row['Prosjekt']) not in df_towards['Towards'].values:
             # Credit trans
 
             if int(row['Konto']) in range(5000, 5299) or int(row['Konto']) in range(5330, 5549) or int(row['Konto']) in range(5600, 5998):
@@ -84,6 +93,7 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
                 # Same same but different
                 input_df_hldf.at[index, 'Konto'] = 4757 
          
+       
         # Insert the new rows into hldf
         if new_rows:
             df_addded_transactions = pd.concat([input_df_hldf, pd.DataFrame(new_rows)], ignore_index=True)
