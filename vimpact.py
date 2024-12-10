@@ -4,12 +4,13 @@
 import pandas as pd
 import os
 import warnings
-from get_mapping import get_mapping_data
+from azure_auth import get_mapping_data
+# from get_mapping import get_mapping_data
 from preprosessing import process_input_files
 from company_specs import company_specific_transactions
 from maconomy import transform_to_maconomy
 from datetime import datetime, timedelta
-from azure_auth import get_mapping_data
+
 
 pd.set_option('display.max_rows', None)
 
@@ -27,11 +28,10 @@ def main() -> None:
     downloads_dir:  str = os.path.join(os.path.expanduser("~"), "Downloads")
     hl_filename:    str = os.path.join(downloads_dir, "HLTrans_" + orgno + "_" + datepart + ".HLT")
     dr_filename:    str = os.path.join(downloads_dir, "Transaksjoner, detaljert.xlsx")
-    mp_filename:    str = os.path.join("mapping.xlsx")
+    # mp_filename:    str = os.path.join("mapping.xlsx")
 
     # Getting the mapping data from the Excel file
     # mapping_df: pd.DataFrame = get_mapping_data(mp_filename)
-
     mapping_df: pd.DataFrame = get_mapping_data()
 
     # Processing and preparing the accounting data

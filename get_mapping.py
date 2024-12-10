@@ -1,3 +1,4 @@
+#
 # Read the mapping Excel file into a DataFrame. Skip the first row, as it contains the column names.
 import pandas as pd
 
@@ -12,4 +13,21 @@ def get_mapping_data(mp_filename: str) -> pd.DataFrame:
         return None
     else:
         print(f"\033[92m1) The mapping Excel file was read successfully.\033[0m")
+        # Drop the third and fifth column from mpdf DataFrame
+        mpdf.drop(mpdf.columns[4], axis=1, inplace=True)
+        mpdf.drop(mpdf.columns[2], axis=1, inplace=True)
+
+        # Convert Towards and Project_VAT to string and remove decimal part
+        mpdf['Towards'] = mpdf['Towards'].astype(str).str.split('.').str[0]
+        mpdf['Project_VAT'] = mpdf['Project_VAT'].astype(str).str.split('.').str[0]
+
         return mpdf
+    
+if __name__ == "__main__":
+    import os
+    # Example usage
+    mp_filename = "mapping.xlsx"  
+    mapping_df = get_mapping_data(mp_filename)
+    print("hello")
+    if mapping_df is not None:
+        print(mapping_df)

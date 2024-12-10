@@ -6,8 +6,8 @@ import pandas as pd
 def get_mapping_data()-> pd.DataFrame:
 
     # Defining the Azure and App registration ID values
-    # We are using APIM and Azure AD for authentication (user auth)
-    client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
+    # We are using Azure APIM as a gateway to Maconomy and Entra ID for authentication (user auth)
+	client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
     tenant_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" # Directory (tenant) ID of tenant
     authority = f"https://login.microsoftonline.com/{tenant_id}"
     scopes = ["api://zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] # The clientID of the API app registration
@@ -28,7 +28,7 @@ def get_mapping_data()-> pd.DataFrame:
 
     # print(access_token)
     api_url_1 = f"{api_gateway}/jobs/filter?fields=jobnumber&restriction=specification4name%20like%20\"Towards2040\""
-    api_url_2 = f"{api_gateway}/jobs/filter?fields=jobname,companyvatcode&restriction=vat%20and%20not(closed)%20and%20not(template)&limit=1000"
+    api_url_2 = f"{api_gateway}/jobs/filter?fields=jobname&restriction=vat%20and%20not(closed)%20and%20not(template)&limit=1000"
     api_url_3 = f"{api_gateway}/AccountCard/filter?restriction=statistic3%20>%20\"1\"&orderby=accountnumber&fields=accountnumber, statistic3&limit=1000"
 
     toward = requests.get(api_url_1, headers=headers)
@@ -52,11 +52,11 @@ def get_mapping_data()-> pd.DataFrame:
     # Projects with VAT
     if 'panes' in vats and 'filter' in vats['panes'] and 'records' in vats['panes']['filter']:
         records = vats['panes']['filter']['records']
-        rows = [{'jobnumber': record['data']['jobnumber'], 'companyvatcode': record['data']['companyvatcode']} for record in records]
+        rows = [{'jobnumber': record['data']['jobnumber']} for record in records]
     else:
         rows = []
 
-    vats_df = pd.DataFrame(rows, columns=['jobnumber', 'companyvatcode'])
+    vats_df = pd.DataFrame(rows, columns=['jobnumber'])
 
     # Account to task number mapping
     if 'panes' in tasks and 'filter' in tasks['panes'] and 'records' in tasks['panes']['filter']:
@@ -70,7 +70,11 @@ def get_mapping_data()-> pd.DataFrame:
     # Stack the coloumns of the dataframes in one dataframe with the same index
     df = pd.concat([tasks_df, towards_df, vats_df], axis=1)
     # rename df columns
-    df.columns = ['Account', 'Task', 'Towards',  'Project_VAT',  'CompanyVATCode']
+    df.columns = ['Account', 'Task', 'Towards',  'Project_VAT']
 
     return df
+
+if __name__ == "__main__":
+    mapping_df = get_mapping_data()
+    print(mapping_df)
 
