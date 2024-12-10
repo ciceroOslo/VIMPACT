@@ -1,24 +1,21 @@
+# Description: This script is used to authenticate the user and get the access token to access the Maconomy API.
+# The last part is fetching the data from the Maconomy API and returning it as a DataFrame.
+
 from msal import PublicClientApplication
 import requests
 import pandas as pd
 
-
-def get_mapping_api()-> pd.DataFrame:
+def get_mapping_api(client_id: str, tenant_id: str, scopes: str, api_gateway: str)-> pd.DataFrame:
 
     # Defining the Azure and App registration ID values
-    # We are using Azure APIM as a gateway to Maconomy and Entra ID for authentication (user auth)
-	client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
-    tenant_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" # Directory (tenant) ID of tenant
     authority = f"https://login.microsoftonline.com/{tenant_id}"
-    scopes = ["api://zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] # The clientID of the API app registration
-    api_gateway = "https://xyz.azure-api.net/macmy"
 
     app = PublicClientApplication(client_id, authority=authority)
 
     # Attempt to get a token silently
     accounts = app.get_accounts()
     result = app.acquire_token_silent(scopes, account=accounts[0]) if accounts else None
-
+    
     # If no token is found, use interactive login
     if not result:
         result = app.acquire_token_interactive(scopes)
@@ -30,6 +27,9 @@ def get_mapping_api()-> pd.DataFrame:
     api_url_1 = f"{api_gateway}/jobs/filter?fields=jobnumber&restriction=specification4name%20like%20\"Towards2040\""
     api_url_2 = f"{api_gateway}/jobs/filter?fields=jobname&restriction=vat%20and%20not(closed)%20and%20not(template)&limit=1000"
     api_url_3 = f"{api_gateway}/AccountCard/filter?restriction=statistic3%20>%20\"1\"&orderby=accountnumber&fields=accountnumber, statistic3&limit=1000"
+
+    # Room for improvement: Use "jobinvoiceable" from Maconomy to identify invoicable projects
+    # Values: non-invoiceable, invoiceable, internal_job, internal_job_invoiceable
 
     toward = requests.get(api_url_1, headers=headers)
     vat = requests.get(api_url_2, headers=headers)
@@ -75,6 +75,10 @@ def get_mapping_api()-> pd.DataFrame:
     return df
 
 if __name__ == "__main__":
-    mapping_df = get_mapping_api()
+    # Just for testing purposes...
+    client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  
+    tenant_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy"
+    scopes = ["api://zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] 
+    api_gateway = "https://xyz.azure-api.net/mac"
+    mapping_df = get_mapping_api(client_id, tenant_id, scopes, api_gateway)
     print(mapping_df)
-

@@ -40,6 +40,8 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
             row['MVA'] = 0
 
         # Invoicable projects (not Towards2040 projects)
+        # Room for improvement: Use "jobinvoiceable" from Maconomy to identify invoicable projects
+        # Values: non-invoiceable, invoiceable, internal_job, internal_job_invoiceable
         # astype(int).values
         if (row['Prosjekt']) > "30000" and (row['Prosjekt']) not in df_towards['Towards'].values:
             # Credit trans

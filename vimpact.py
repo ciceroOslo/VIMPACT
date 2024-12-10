@@ -1,38 +1,52 @@
 # VIMPACT by Frode Rørvik, CICERO Center for International Climate Research 
-# Date: 2024-10-20
+# Date: 2024-12-12
 
 import pandas as pd
 import os
 import warnings
-from azure_auth import get_mapping_api
-# from get_mapping import get_mapping_data
+# Importing the functions from the modules
 from preprosessing import process_input_files
 from company_specs import company_specific_transactions
 from maconomy import transform_to_maconomy
 from datetime import datetime, timedelta
 
+# Choose API or Excel for mapping data
+from azure_auth import get_mapping_api
+# from get_mapping import get_mapping_data
 
-pd.set_option('display.max_rows', None)
+# Debugging help - print all rows in the DataFrame
+# pd.set_option('display.max_rows', None)
 
 # ***********************************************************************************
 # The main program code                                                             *
 # ***********************************************************************************        
 
 def main() -> None:
+    # Assigning the organization number for the Payroll file name
     orgno:          str = "971274190"
-    # Calculate the date part of the accounting file
+    
+    # Define the directory where the files are stored (users download directory)
+    downloads_dir:  str = os.path.join(os.path.expanduser("~"), "Downloads")
+
+    # API and Ouauth2.0 authentication
+    # We are using Azure APIM as a gateway to Maconomy and Entra ID for authentication (user auth)
+	client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
+    tenant_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" # Directory (tenant) ID of tenant
+    scopes = ["api://zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] # The clientID of the API app registration
+    api_gateway = "https://xyz.azure-api.net/mac"
+
+    # Calculate the date part of the accounting file name
     today = datetime.today()
     first_day_of_month = today.replace(day=1)
     datepart:       str = first_day_of_month.strftime("%Y%m")
-    # Define the file paths and input files
-    downloads_dir:  str = os.path.join(os.path.expanduser("~"), "Downloads")
+    # Define the input files   
     hl_filename:    str = os.path.join(downloads_dir, "HLTrans_" + orgno + "_" + datepart + ".HLT")
     dr_filename:    str = os.path.join(downloads_dir, "Transaksjoner, detaljert.xlsx")
-    # mp_filename:    str = os.path.join("mapping.xlsx")
 
     # Getting the mapping data from the Excel file or API
+    # mp_filename:    str = os.path.join("mapping.xlsx")
     # mapping_df: pd.DataFrame = get_mapping_data(mp_filename)
-    mapping_df: pd.DataFrame = get_mapping_api()
+    mapping_df: pd.DataFrame = get_mapping_api(client_id, tenant_id, scopes, api_gateway)
 
     # Processing and preparing the accounting data
     accounting_df: pd.DataFrame = process_input_files(hl_filename, dr_filename, mapping_df)
@@ -59,8 +73,6 @@ def main() -> None:
             mac_header_df.to_excel(output_filename, index=False, header=False)
             with pd.ExcelWriter(output_filename, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
                 maconomy_df.to_excel(writer, index=False, startrow=len(mac_header_df) + 1)
-
-           # maconomy_df.to_excel(output_filename, index=False)
         except Exception as e:
             print(f"\033[91mError writing the Maconomy import file: {e}\033[0m")
         else:                      
