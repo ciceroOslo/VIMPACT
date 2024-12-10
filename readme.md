@@ -3,7 +3,7 @@
 Date: 30th of October 2024
 
 This tool facilitates the conversion of payroll accounting data file from Visma Payroll to Delktek Maconomy ERP.
-Please configure Visma Payroll to output H&L fixed width file format. Currenty, its the only format that supports VAT codes.
+It solves the following challenges: VAT code, textual description, employee dimension and company specific customizations.
 
 ## Features
 
@@ -21,7 +21,7 @@ Lønnsperiode, ansattnummer, lønnsart, beløp, tekst and reiseregningID.
 Please filter on Lønnsartgrupper = Expense. Remember to adjust Fra/til lønnskjøring to filter out the transaction target.
 
 3) Modify the file mapping.xlsx and enter the relationship between account/activity and task number. 
-You can also edit the project listing for special handeling of projects with VAT.  
+You can also edit the project listing for special handeling of projects with VAT.  ALternativly use API to fetch data from Maconomy
 
 4) Format the Debit and Credit cells: general number with two digits.
 
