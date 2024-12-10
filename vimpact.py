@@ -4,7 +4,7 @@
 import pandas as pd
 import os
 import warnings
-from azure_auth import get_mapping_data
+from azure_auth import get_mapping_api
 # from get_mapping import get_mapping_data
 from preprosessing import process_input_files
 from company_specs import company_specific_transactions
@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 pd.set_option('display.max_rows', None)
 
 # ***********************************************************************************
-# The main program code - make sure it only runs if the script is executed directly *
+# The main program code                                                             *
 # ***********************************************************************************        
 
 def main() -> None:
@@ -30,9 +30,9 @@ def main() -> None:
     dr_filename:    str = os.path.join(downloads_dir, "Transaksjoner, detaljert.xlsx")
     # mp_filename:    str = os.path.join("mapping.xlsx")
 
-    # Getting the mapping data from the Excel file
+    # Getting the mapping data from the Excel file or API
     # mapping_df: pd.DataFrame = get_mapping_data(mp_filename)
-    mapping_df: pd.DataFrame = get_mapping_data()
+    mapping_df: pd.DataFrame = get_mapping_api()
 
     # Processing and preparing the accounting data
     accounting_df: pd.DataFrame = process_input_files(hl_filename, dr_filename, mapping_df)

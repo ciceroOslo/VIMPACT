@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 
 
-def get_mapping_data()-> pd.DataFrame:
+def get_mapping_api()-> pd.DataFrame:
 
     # Defining the Azure and App registration ID values
     # We are using Azure APIM as a gateway to Maconomy and Entra ID for authentication (user auth)
@@ -75,6 +75,6 @@ def get_mapping_data()-> pd.DataFrame:
     return df
 
 if __name__ == "__main__":
-    mapping_df = get_mapping_data()
+    mapping_df = get_mapping_api()
     print(mapping_df)
 
