@@ -30,10 +30,10 @@ def main() -> None:
 
     # API and Ouauth2.0 authentication
     # We are using Azure APIM as a gateway to Maconomy and Entra ID for authentication (user auth)
-	client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
+    client_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"  # Application (client) ID of app registration
     tenant_id = "yyyyyyyy-yyyy-yyyy-yyyy-yyyyyyyyyyyy" # Directory (tenant) ID of tenant
-    scopes = ["api://zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] # The clientID of the API app registration
-    api_gateway = "https://xyz.azure-api.net/mac"
+    scopes = ["api://zzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz/.default"] # The clientID of the API app registration
+    api_gateway = "https://abcdefg.azure-api.net/maconomy" # The API gateway URL
 
     # Calculate the date part of the accounting file name
     today = datetime.today()

@@ -5,7 +5,7 @@ from msal import PublicClientApplication
 import requests
 import pandas as pd
 
-def get_mapping_api(client_id: str, tenant_id: str, scopes: str, api_gateway: str)-> pd.DataFrame:
+def get_mapping_api(client_id: str, tenant_id: str, scopes: list[str], api_gateway: str)-> pd.DataFrame:
 
     # Defining the Azure and App registration ID values
     authority = f"https://login.microsoftonline.com/{tenant_id}"
@@ -24,7 +24,7 @@ def get_mapping_api(client_id: str, tenant_id: str, scopes: str, api_gateway: st
     headers = {"Authorization": f"Bearer {access_token}"}
 
     # print(access_token)
-    api_url_1 = f"{api_gateway}/jobs/filter?fields=jobnumber&restriction=specification4name%20like%20\"Towards2040\""
+    api_url_1 = f"{api_gateway}/jobs/filter?fields=jobnumber&restriction=specification4name%20like%20\"Towards2040\"&limit=1000"
     api_url_2 = f"{api_gateway}/jobs/filter?fields=jobname&restriction=vat%20and%20not(closed)%20and%20not(template)&limit=1000"
     api_url_3 = f"{api_gateway}/AccountCard/filter?restriction=statistic3%20>%20\"1\"&orderby=accountnumber&fields=accountnumber, statistic3&limit=1000"
 

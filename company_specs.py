@@ -47,7 +47,7 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
             # Credit trans
 
             if int(row['Konto']) in range(5000, 5299) or int(row['Konto']) in range(5330, 5549) or int(row['Konto']) in range(5600, 5998):
-                # Same same but different
+                # Same same but different (erstatter vi konto/aktivitet med 4753)
                 input_df_hldf.at[index, 'Konto'] = 4753                
             elif int(row['Konto']) in range(5300, 5329):
                 # Debit debit credit 5300-5329
@@ -60,7 +60,7 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
                 # Debit trans on account 4755
                 new_row_2 = row.copy()
                 new_row_2['Konto'] = 4755
-                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_row_2['Beløp'] = row['Beløp']
                 new_rows.append(new_row_2)
             elif int(row['Konto']) in range(5550, 5598):
                 # Debit debit credit 5550-5598 (not 5599)
@@ -73,12 +73,27 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
                 # Debit trans on account 4755
                 new_row_2 = row.copy()
                 new_row_2['Konto'] = 4755
-                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_row_2['Beløp'] = row['Beløp']
                 new_rows.append(new_row_2)
+           # elif int(row['Konto']) in range(6000, 6998):
+           #      input_df_hldf.at[index, 'Konto'] = 4756 
+           #
+           # New logic valid from 12.06.2025
             elif int(row['Konto']) in range(6000, 6998):
-                 input_df_hldf.at[index, 'Konto'] = 4756 
+                # Debit debit credit
+                # credit first...
+                new_row_1 = row.copy()
+                new_row_1['Konto'] = 6999
+                new_row_1['Beløp'] = -row['Beløp']
+                new_rows.append(new_row_1)    
+     
+                # Debit trans on account 4756
+                new_row_2 = row.copy()
+                new_row_2['Konto'] = 4756
+                new_row_2['Beløp'] = row['Beløp']
+                new_rows.append(new_row_2)
                 
-            elif int(row['Konto']) in range(7000, 7169):
+            elif int(row['Konto']) in range(7000, 7998):
                 # Debit debit credit
                 # credit first...
                 new_row_1 = row.copy()
@@ -89,11 +104,11 @@ def company_specific_transactions(input_df_hldf: pd.DataFrame, input_df_mapping:
                 # Debit trans on account 4757
                 new_row_2 = row.copy()
                 new_row_2['Konto'] = 4757
-                new_row_2['Beløp'] = abs(row['Beløp'])
+                new_row_2['Beløp'] = row['Beløp']
                 new_rows.append(new_row_2)
-            elif int(row['Konto']) in range(7170, 7998):
+           # elif int(row['Konto']) in range(7170, 7998):
                 # Same same but different
-                input_df_hldf.at[index, 'Konto'] = 4757 
+           #     input_df_hldf.at[index, 'Konto'] = 4757 
          
        
         # Insert the new rows into hldf

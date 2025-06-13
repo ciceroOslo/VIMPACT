@@ -1,5 +1,6 @@
 #
 # Read the mapping Excel file into a DataFrame. Skip the first row, as it contains the column names.
+# This file is currently not used since API is used for mapping data.
 import pandas as pd
 
 def get_mapping_data(mp_filename: str) -> pd.DataFrame:

@@ -14,6 +14,7 @@ def process_input_files(hl_filename :str, dr_filename: str, mp_dataframe: pd.Dat
         hlcolumn_names = ['Konto', 'MVA', 'Avdeling', 'Prosjekt', 'Medarbeider', 'R4', 'R5', 'R6', 'R7', 'ID', 'Filler', 'Dato', 'Ant', 'Sats', 'Beløp', 'Sign']  
         # Read the fixed-width file into a DataFrame
         hldf = pd.read_fwf(hl_filename, colspecs=hlcolspecs, names=hlcolumn_names)
+        
     except FileExistsError as e:
         print(f"\033[91mError: The file {e} is in use by another application or file not found.\033[0m")
         return None
@@ -53,57 +54,53 @@ def process_input_files(hl_filename :str, dr_filename: str, mp_dataframe: pd.Dat
         hldf['Medarbeider'] = hldf['Medarbeider'].astype(str)
         hldf['Konto'] = hldf['Konto'].astype(str)
         hldf['ID'] = hldf['ID'].astype(str)
-
-        # hldf.loc[hldf['MVA'] == "0", 'MVA'] = ""
+        
         hldf.loc[hldf['Prosjekt'] == "0", 'Prosjekt'] = ""
         hldf.loc[hldf['Avdeling'] == "0", 'Avdeling'] = ""
         hldf.loc[hldf['Medarbeider'] == "0", 'Medarbeider'] = ""
         hldf.loc[hldf['ID'] == "0", 'ID'] = ""
         hldf.loc[hldf['Oppgave'] == "0", 'Oppgave'] = ""
 
+  
         # Converting to proper datatypes - hldf DataFrame
         hldf['Dato'] = pd.to_datetime(hldf['Dato'], format='%d%m%Y', errors='coerce')
         hldf['Beløp'] = hldf['Beløp'].astype(float) / 100
         # hldf['Konto'] = pd.to_numeric(hldf['Konto'], errors='coerce')
         # hldf['ID'] = pd.to_numeric(hldf['ID'], errors='coerce')
                 
-        # Removing unwanted Project and Department dimensions. Just to correct sub-optimal configuration of Visma Payroll.
-        # This might be removed in the future.
-        # hldf.loc[(hldf['Konto'] < 5320) | (hldf['Konto'] > 5329) & (hldf['Konto'] < 5849) & (hldf['Prosjekt'] > 0), 'Prosjekt'] = 0
-        # hldf.loc[(hldf['Medarbeider'] == "0") & (hldf['Prosjekt'] == 0), 'Avdeling'] = 0
         # Populate 'Sign' with "+" if Sign is not "-"
         hldf.loc[(hldf['Sign'] != "-"), 'Sign'] = "+"
 
+        
+
         # Populate 'Oppgave' with Task from mp. Mapping should be done on Konto=Account.
         mp.columns = ['Account', 'Task']
-        #make sure that mp contains numeric values - may be deleted when all is good.
-        #mp['Account'] = pd.to_numeric(mp['Account'], errors='coerce')
+
        
         # IF statments to assign a task number if project is specified in the accounting file.     
-        
+        # If Prosjekt is not empty, then map the Task from mp DataFrame to Oppgave column in hldf DataFrame    
         hldf.loc[hldf['Prosjekt'] != "", 'Oppgave'] = hldf['Konto'].map(mp.set_index('Account')['Task'])
         hldf.loc[hldf['Prosjekt'] == "", 'Oppgave'] = ""
         
-        # Use pivot function to aggregate Beløp if Konto & Avdeling & Project are the same
-        # might be removed if Visma Payroll is configured correctly.
-        #......now also taken into account not to aggregate Beløp with different sign (positive/negative)
-        # hldf = hldf.pivot_table(index=['Konto', 'Avdeling', 'Prosjekt', 'Medarbeider','Oppgave', 'MVA', 'ID', 'Dato', 'Sign'], values='Beløp', aggfunc='sum').reset_index()
-  
         # If Avdeling is 0, then set Avdeling to NaN
         hldf.loc[hldf['Avdeling'] == 0, 'Avdeling'] = ""
 
         # Don't need the Sign column anymore
         hldf.drop(columns=['Sign'], inplace=True)
 
-        # Drop the columns Lønnsperiode, Ansattnummer og Lønnsart from drdf DataFrame (Payroll Excel report)
+        #drdf['Reiseregning ID'] = drdf['Reiseregning ID'].astype(str).str[:-2] (just wonder about this str-fuction. That must have been copilot....)
+        drdf['Reiseregning ID'] = drdf['Reiseregning ID'].astype(str)
+       
+        drdf.loc[drdf['Lønnsart'].astype(str).str.startswith("13120"), 'Tekst'] = drdf['Ansattnummer']
+        drdf.loc[drdf['Lønnsart'].astype(str).str.startswith("13120"), 'Reiseregning ID'] = drdf['Ansattnummer']
+
+          # Remove the columns that are not needed in the Payroll report DataFrame                
         drdf.drop(columns=['Lønnsperiode', 'Ansattnummer', 'Lønnsart', 'Beløp', 'MVA-kode'], inplace=True)
 
-        # Use pivot function to aggregate drdf if rows are duplicated (Tekst & Reiseregning ID)
-        drdf = drdf.pivot_table(index=['Tekst', 'Reiseregning ID']).reset_index()
+        # Rename the columns in drdf DataFrame
+        drdf = drdf.pivot_table(index=['Tekst', 'Reiseregning ID'], aggfunc='first').reset_index()
 
-        # Converting the 'Reiseregning ID' to an integer object to make merging/mapping more robust.
-        # drdf['Reiseregning ID'] = pd.to_numeric(drdf['Reiseregning ID'], errors='coerce')
-        
+            
         # Merging: Add the column Text to hldf DataFrame and use a vlookup-like function to fetch drdf and join on ID=Reiseregning ID     
         hldf['Text'] = hldf.apply(lambda row: f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], 
         f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')}" 
@@ -111,6 +108,8 @@ def process_input_files(hl_filename :str, dr_filename: str, mp_dataframe: pd.Dat
         f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})') 
         else f"{drdf.set_index('Reiseregning ID')['Tekst'].get(row['ID'], 
         f'Lønn ({row['Dato'].strftime('%Y-%m-%d')})')} ({row['ID']})", axis=1)
+
+       
 
     except Exception as e:
         print(f"\033[91mError processing the data: {e}\033[0m")
